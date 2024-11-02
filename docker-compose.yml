@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: ${PGSQL_USERS_USER}
+      POSTGRES_PASSWORD: ${PGSQL_USERS_PASSWORD}
+      POSTGRES_DB: ${PGSQL_USERS_DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "6666:5432"
+    networks:
+      - my_network
+  app:
+    build: ./
+    command: [ "bash", "-c", "./wait-for-postgres.sh postgres_container make run" ]
+    container_name: go_app
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    networks:
+      - my_network
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+networks:
+  my_network:
+
+
+volumes:
+  pgdata:
